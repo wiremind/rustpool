@@ -37,7 +37,7 @@ jobs:
       RUSTPOOL_REQUIRE_OPTIONAL: "1"
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.88.0
+      - uses: dtolnay/rust-toolchain@1.120.0
       - run: cargo test --all
       - uses: actions/setup-python@v5
         with:
@@ -95,7 +95,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - uses: dtolnay/rust-toolchain@1.88.0  # the external-crate test and the sdist build
+      - uses: dtolnay/rust-toolchain@1.120.0  # the external-crate test and the sdist build
       - name: Install the wheel (or the sdist) with the test extras
         run: |
           python -m venv /tmp/venv
