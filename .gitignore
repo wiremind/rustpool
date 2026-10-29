@@ -1,0 +1,31 @@
+*.csv
+/target/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# uv lock and .so
+uv.lock
+_rustpool*.so
+
+# graphify generated knowledge graph
+graphify-out/
+
+# mkdocs build output
+/site/
+
+# pytest-benchmark data
+.benchmarks/
+
+# Local environments, build artifacts, editor and agent files
+.venv/
+venv/
+dist/
+*.egg-info/
+.idea/
+.vscode/
+.DS_Store
+.pytest_cache/
+.ruff_cache/
+.agents/
+.claude/settings.local.json

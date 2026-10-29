@@ -1,0 +1,5 @@
+[toolchain]
+# One exact version, the same string as the CI's dtolnay/rust-toolchain@1.88.0 (rust-version in
+# Cargo.toml is the MSRV), so rustup installs a single toolchain.
+channel = "1.88.0"
+components = ["rustfmt", "clippy"]

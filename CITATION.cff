@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use rustpool in your research, please cite it as below."
+title: "rustpool: a pure-Rust parallel RL environment-execution engine with a state-cloning search substrate"
+abstract: >-
+  rustpool is a pure-Rust parallel reinforcement-learning environment-execution engine exposed
+  to Python via PyO3. It mirrors EnvPool's asynchronous send/recv batched-execution model and
+  extends it with a state snapshot / simulate_batch / release_batch API that enables batched
+  Monte-Carlo tree search over an external, non-differentiable simulator, with
+  factored/autoregressive action-mask transport and a JAX io_callback bridge.
+type: software
+authors:
+  - family-names: Reboul
+    given-names: Sebastian
+    email: sreboul@wiremind.io
+repository-code: "https://github.com/wiremind/rustpool"
+url: "https://github.com/wiremind/rustpool"
+license:
+  - MIT
+  - Apache-2.0
+keywords:
+  - reinforcement-learning
+  - environment-pool
+  - monte-carlo-tree-search
+  - alphazero
+  - jax
+  - rust
+version: "0.1.6"

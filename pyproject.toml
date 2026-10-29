@@ -1,0 +1,113 @@
+[build-system]
+requires = ["maturin>=1.9.4,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "rustpool"
+# Single source of truth for the version is Cargo.toml [package].version;
+# maturin reads it because "version" is declared dynamic here.
+dynamic = ["version"]
+description = "Pure-Rust parallel RL environment-execution engine (EnvPool-style) with a state-cloning MCTS substrate and a JAX bridge."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT OR Apache-2.0"
+license-files = ["LICENSE-MIT", "LICENSE-APACHE"]
+authors = [{ name = "Sebastian Reboul", email = "sreboul@wiremind.io" }]
+keywords = [
+    "reinforcement-learning",
+    "rl",
+    "envpool",
+    "mcts",
+    "alphazero",
+    "simulation",
+    "jax",
+    "rust",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Rust",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Operating System :: POSIX :: Linux",
+    "Typing :: Typed",
+]
+
+# Runtime dependencies are deliberately minimal: the native engine only needs NumPy at the
+# Python boundary. Everything else (gymnasium, JAX, PyTorch, docs, tests) is an
+# optional extra so that `pip install rustpool` stays lightweight.
+dependencies = [
+    "numpy>=1.24",
+]
+
+[project.urls]
+Homepage = "https://github.com/wiremind/rustpool"
+Repository = "https://github.com/wiremind/rustpool"
+Documentation = "https://github.com/wiremind/rustpool/tree/main/docs"
+Changelog = "https://github.com/wiremind/rustpool/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+# gymnasium vector-env wrapper (rustpool.envpool_api.gymnasium); needs AutoresetMode (1.1+).
+gymnasium = ["gymnasium>=1.1"]
+# JAX bridge (rustpool.jax_api.JaxPool) — host<->device via io_callback.
+jax = ["jax>=0.4.28", "jaxlib>=0.4.28"]
+# Everything needed to run the PPO / AlphaZero showcases in examples/ (both JAX and PyTorch).
+examples = [
+    "jax>=0.4.28",
+    "jaxlib>=0.4.28",
+    "flax>=0.10",
+    "optax>=0.2.2",
+    "mctx>=0.0.5",
+    "torch>=2.1",
+]
+# Zero-copy PyTorch interop (rustpool.torch_api).
+torch = ["torch>=2.1"]
+# Documentation site.
+docs = ["mkdocs-material>=9.5", "mkdocstrings[python]>=0.26"]
+# Developer / CI toolchain.
+dev = [
+    "gymnasium>=1.1",
+    "maturin>=1.9.4,<2.0",
+    "pytest>=8",
+    "pytest-benchmark",
+    "ruff>=0.6",
+]
+
+[tool.maturin]
+# Build a manylinux2014 wheel (glibc 2.17) so prebuilt binaries install everywhere.
+manylinux = "2014"
+module-name = "rustpool._rustpool"
+# Ship the type information (py.typed marker + .pyi stub) inside the wheel.
+include = ["rustpool/py.typed", "rustpool/_rustpool.pyi"]
+# Never ship local agent/tooling files in the sdist, tracked or not.
+exclude = [
+    { path = ".agents/**/*", format = "sdist" },
+    { path = ".claude/**/*", format = "sdist" },
+    { path = "CLAUDE.md", format = "sdist" },
+    { path = "graphify-out/**/*", format = "sdist" },
+    # The pin is for this repo's CI; a source build only needs Cargo.toml's rust-version (MSRV).
+    { path = "rust-toolchain.toml", format = "sdist" },
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = ["--strict-markers", "-rs"]
+# rustpool's own deprecations (and any the tests trigger) are errors; third-party ones are not.
+filterwarnings = ["error::DeprecationWarning:rustpool", "error::DeprecationWarning:tests"]
+markers = [
+    "jax: tests that require the optional JAX stack (install rustpool[jax] or [examples])",
+    "torch: tests that require the optional PyTorch stack (install rustpool[torch])",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]
+ignore = ["E501"]
