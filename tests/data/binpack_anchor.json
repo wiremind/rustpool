@@ -1,0 +1,28 @@
+{
+ "generated_from_commit": "50fd7b689d5c76629b7311af4f74f1abfd2a3acd",
+ "binpack_src_dirty_at_generation": false,
+ "num_envs": 64,
+ "steps": 300,
+ "cases": {
+  "flat": {
+   "sha256": "ae0d4068f34d1b9ff425ee5c55f7498192af3fa3a8249d96f4563fda8de2ca4c",
+   "total_reward": 492.6363,
+   "episodes": 870
+  },
+  "flat_sparse": {
+   "sha256": "c8e8133eec85b6ad071147fe85d5e6ba8df4407a700fde95d846057047218d3b",
+   "total_reward": 475.787,
+   "episodes": 870
+  },
+  "factored": {
+   "sha256": "7230bb24167526539087fa71a565335a62038a91cb39809c5f12395a17db2de5",
+   "total_reward": 550.3899,
+   "episodes": 857
+  },
+  "factored_with_flat_mask": {
+   "sha256": "36a3872832484eb4d115d8d60d8f0e7411ea91c95ae49147d2cd0769f54a054f",
+   "total_reward": 550.3899,
+   "episodes": 857
+  }
+ }
+}

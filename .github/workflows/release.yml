@@ -1,0 +1,128 @@
+name: release
+
+# Build manylinux wheels and publish to PyPI on a version tag (vX.Y.Z) via Trusted Publishing.
+# Prerequisite: configure a PyPI "trusted publisher" for this repo+workflow (no API token needed).
+# See https://docs.pypi.org/trusted-publishers/ .
+
+on:
+  push:
+    tags: ["v*"]
+  # A manual run rehearses everything but the upload (publish runs on v* tags only).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Cargo.toml is the single source of truth for the version: a tag that disagrees would
+  # publish wheels under the wrong version.
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: The tag matches Cargo.toml's version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          crate=$(python3 -c "import tomllib; print(tomllib.load(open('Cargo.toml', 'rb'))['package']['version'])")
+          if [ "${GITHUB_REF_NAME#v}" != "$crate" ]; then
+            echo "tag $GITHUB_REF_NAME does not match Cargo.toml version $crate"; exit 1
+          fi
+
+  # Gate the whole release on green Rust + Python suites for the tagged commit.
+  test:
+    needs: version
+    runs-on: ubuntu-latest
+    env:
+      JAX_PLATFORMS: cpu
+      RUSTPOOL_REQUIRE_OPTIONAL: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.88.0
+      - run: cargo test --all
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build extension + install test deps, run pytest
+        run: |
+          python -m venv .venv
+          ./.venv/bin/pip install --upgrade pip maturin
+          ./.venv/bin/maturin develop --extras examples,dev
+          ./.venv/bin/pytest -q
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build wheels (manylinux2014, cp311 to cp314)
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: --release --out dist --interpreter 3.11 3.12 3.13 3.14
+          manylinux: "2014"
+      - name: Build sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+  # Install each built wheel (and, once, the sdist) outside the source tree and run the suite
+  # against it, so a broken wheel never reaches PyPI. jax/torch tests self-skip here; the test
+  # job above covers them on the source build.
+  wheel-test:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        python: ["3.11", "3.12", "3.13", "3.14"]
+        artifact: [wheel]
+        include:
+          - python: "3.12"
+            artifact: sdist
+    env:
+      JAX_PLATFORMS: cpu
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: dtolnay/rust-toolchain@1.88.0  # the external-crate test and the sdist build
+      - name: Install the wheel (or the sdist) with the test extras
+        run: |
+          python -m venv /tmp/venv
+          tag="cp$(echo '${{ matrix.python }}' | tr -d .)"
+          if [ "${{ matrix.artifact }}" = "sdist" ]; then
+            artifact="$(ls dist/*.tar.gz)"
+          else
+            artifact="$(ls dist/*-${tag}-${tag}-*.whl)"
+          fi
+          /tmp/venv/bin/pip install "${artifact}[dev]"
+      - name: Test the installed package, not the checkout
+        run: |
+          rm -rf rustpool  # tests must import the installed package
+          /tmp/venv/bin/python -c "import pathlib, rustpool; p = pathlib.Path(rustpool.__file__).parent; assert 'site-packages' in str(p), p; assert (p / 'py.typed').exists() and (p / '_rustpool.pyi').exists()"
+          /tmp/venv/bin/pytest -q -rs
+
+  publish:
+    needs: [build, wheel-test]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write  # required for PyPI Trusted Publishing (OIDC)
+    steps:
+      # Pinned by commit: this job holds the PyPI publishing token (id-token: write).
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        with:
+          name: dist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086  # v1.14.3

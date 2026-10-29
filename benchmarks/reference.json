@@ -1,0 +1,31 @@
+{
+  "hardware": {
+    "platform": "Linux-6.17.0-29-generic-x86_64-with-glibc2.39",
+    "processor": "x86_64",
+    "cpu_count": 32,
+    "rustpool_version": "0.1.6",
+    "num_envs": 256,
+    "steps_per_run": 200,
+    "repeats": 20
+  },
+  "results": {
+    "engine sync  (Maze, bs=num_envs)": {
+      "mean": 229885.68989179615,
+      "std": 3588.3922171977847,
+      "p95": 234317.49072084847,
+      "n": 20
+    },
+    "engine async (Maze, bs=num_envs/4)": {
+      "mean": 234384.65394730138,
+      "std": 8042.322669384421,
+      "p95": 245469.4121145882,
+      "n": 20
+    },
+    "end-to-end  (BinPack-v0)": {
+      "mean": 105012.7733193284,
+      "std": 605.4784746662697,
+      "p95": 105879.08248774798,
+      "n": 20
+    }
+  }
+}
