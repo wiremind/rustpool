@@ -19,7 +19,7 @@ jobs:
   version:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - name: The tag matches Cargo.toml's version
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
@@ -36,7 +36,7 @@ jobs:
       JAX_PLATFORMS: cpu
       RUSTPOOL_REQUIRE_OPTIONAL: "1"
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: dtolnay/rust-toolchain@360a4e93673de6630fac2478bc9e35244b01a759  # 1.88.0
         with:
           components: rustfmt, clippy  # what rust-toolchain.toml lists, installed up front
@@ -55,7 +55,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - name: Build wheels (manylinux2014, cp311 to cp314)
         uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b  # v1.51.0
         with:
@@ -89,7 +89,7 @@ jobs:
     env:
       JAX_PLATFORMS: cpu
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
         with:
           name: dist
